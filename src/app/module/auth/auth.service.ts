@@ -298,13 +298,15 @@ export const resetPasswordService = async ({
 };
 
 export const verifyEmailService = async (token: string) => {
+    const hashToken = await generateHashedToken(token)
+
     const [updatedUser] = await db
         .update(usersTable)
         .set({
             emailVerified: true,
             verificationToken: null,
         })
-        .where(eq(usersTable.verificationToken, token))
+        .where(eq(usersTable.verificationToken, hashToken))
         .returning();
 
     if (!updatedUser) {
