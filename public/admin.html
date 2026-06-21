@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Application</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #ffffff;
+            --fg: #09090b;
+            --muted: #71717a;
+            --border: #e4e4e7;
+            --input-bg: #ffffff;
+            --ring: #18181b;
+            --card-bg: #ffffff;
+            --card-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+            --radius: 0.5rem;
+            --btn-bg: #18181b;
+            --btn-fg: #fafafa;
+            --btn-hover: #27272a;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #09090b;
+                --fg: #fafafa;
+                --muted: #a1a1aa;
+                --border: #27272a;
+                --input-bg: #09090b;
+                --ring: #d4d4d8;
+                --card-bg: #18181b;
+                --btn-bg: #fafafa;
+                --btn-fg: #18181b;
+                --btn-hover: #e4e4e7;
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 0.3rem;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+        }
+
+        input {
+            height: 2.4rem;
+            padding: 0 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--input-bg);
+            color: var(--fg);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            height: 2.4rem;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--btn-bg);
+            color: var(--btn-fg);
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--btn-hover);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+        }
+
+        .msg {
+            display: none;
+            font-size: 0.8rem;
+            padding: 0.6rem;
+            border-radius: var(--radius);
+        }
+
+        .error {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .success {
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .result {
+            display: none;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            word-break: break-all;
+        }
+
+        .note {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <div class="header">
+            <h1>Register Application</h1>
+            <p class="subtitle">Generate client credentials for OAuth</p>
+        </div>
+
+        <form id="form" class="form">
+            <div id="error" class="msg error"></div>
+            <div id="success" class="msg success"></div>
+
+            <div class="field">
+                <label>Application Name</label>
+                <input id="name" placeholder="My App" required />
+            </div>
+
+            <div class="field">
+                <label>Redirect URI</label>
+                <input id="redirect" placeholder="http://localhost:3000/callback" required />
+            </div>
+
+            <button id="btn" type="submit">Create Application</button>
+        </form>
+
+        <div id="result" class="result"></div>
+
+        <p class="note">
+            Client secret is shown once. Store it securely.
+        </p>
+    </div>
+
+    <script>
+        const form = document.getElementById('form');
+        const btn = document.getElementById('btn');
+        const errorEl = document.getElementById('error');
+        const successEl = document.getElementById('success');
+        const resultEl = document.getElementById('result');
+
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+            successEl.style.display = 'none';
+        }
+
+        function showSuccess(msg) {
+            successEl.textContent = msg;
+            successEl.style.display = 'block';
+            errorEl.style.display = 'none';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+            resultEl.style.display = 'none';
+
+            const name = document.getElementById('name').value.trim();
+            const redirect = document.getElementById('redirect').value.trim();
+
+            if (!name || !redirect) {
+                return showError('All fields are required.');
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                const res = await fetch('/admin/applications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        redirectUris: [redirect]
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    return showError(data.message || 'Something went wrong.');
+                }
+
+                showSuccess('Application created successfully.');
+
+                resultEl.style.display = 'block';
+                resultEl.innerHTML = `
+            <strong>Client ID:</strong><br>${data.client_id}<br><br>
+            <strong>Client Secret:</strong><br>${data.client_secret}
+        `;
+
+            } catch {
+                showError('Network error.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Application';
+            }
+        });
+    </script>
+
+</body>
+
+</html>

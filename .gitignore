@@ -1,3 +1,6 @@
+# OIDC
+cert/
+
 # Logs
 logs
 *.log

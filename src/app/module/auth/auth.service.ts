@@ -1,8 +1,8 @@
-import { and, eq, getTableColumns, gt, sql } from 'drizzle-orm';
-import { db } from '../../common/db/index.js';
-import { userPublicColumns, usersTable } from '../../common/db/schema.js';
-import apiError from '../../common/utils/apiError.js';
-import bcrypt from 'bcryptjs';
+import { and, eq, getTableColumns, gt, sql } from "drizzle-orm";
+import { db } from "../../common/db/index.js";
+import { userPublicColumns, usersTable } from "../../common/db/schema.js";
+import apiError from "../../common/utils/apiError.js";
+import bcrypt from "bcryptjs";
 import {
     compareUserPassword,
     generateAccessToken,
@@ -11,9 +11,9 @@ import {
     generateRefreshToken,
     generateToken,
     verifyRefreshToken,
-} from './utils/token.js';
-import nodemailer from 'nodemailer';
-import { transporter } from './utils/mail.js';
+} from "./utils/token.js";
+import nodemailer from "nodemailer";
+import { transporter } from "./utils/mail.js";
 
 export const signupService = async ({
     firstName,
@@ -33,7 +33,7 @@ export const signupService = async ({
 
     if (existingUser.length > 0) {
         throw apiError.conflict(
-            'Signup failed. Please check your details or try logging in',
+            "Signup failed. Please check your details or try logging in",
         );
     }
 
@@ -59,7 +59,7 @@ export const signupService = async ({
             });
 
         if (!user) {
-            throw apiError.badRequest('Failed to create a user');
+            throw apiError.badRequest("Failed to create a user");
         }
 
         const refreshToken = await generateRefreshToken({
@@ -76,14 +76,14 @@ export const signupService = async ({
         try {
             const info = await transporter.sendMail({
                 to: user.email,
-                subject: 'Verify your email',
-                html: `<a href="http://localhost:3000/verify-email?token=${token}">Verify Email</a>`,
+                subject: "Verify your email",
+                html: `<a href="${process.env.FRONTEND_URL}/verify-email?token=${token}">Verify Email</a>`,
             });
 
-            console.log('Message sent: %s', info.messageId);
-            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+            console.log("Message sent: %s", info.messageId);
+            console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
         } catch (err) {
-            console.error('Error while sending mail:', err);
+            console.error("Error while sending mail:", err);
         }
 
         await tx
@@ -108,13 +108,13 @@ export const signinService = async ({
         .where(eq(usersTable.email, email));
 
     if (!user) {
-        throw apiError.notFound('User not found, invalid email or username');
+        throw apiError.notFound("User not found, invalid email or username");
     }
 
     const validPassword = await compareUserPassword(password, user.password);
 
     if (!validPassword) {
-        throw apiError.badRequest('Invalid password');
+        throw apiError.badRequest("Invalid password");
     }
 
     const refreshToken = await generateRefreshToken({
@@ -142,7 +142,7 @@ export const signinService = async ({
         });
 
     if (!updatedUser) {
-        throw apiError.badRequest('Failed to create a user');
+        throw apiError.badRequest("Failed to create a user");
     }
 
     return { user: updatedUser, accessToken };
@@ -162,7 +162,7 @@ export const refreshService = async (refreshToken: string) => {
     };
 
     if (!decoded || !decoded.id) {
-        throw apiError.unauthorized('Invalid refresh token');
+        throw apiError.unauthorized("Invalid refresh token");
     }
 
     const [user] = await db
@@ -171,7 +171,7 @@ export const refreshService = async (refreshToken: string) => {
         .where(eq(usersTable.id, decoded.id));
 
     if (!user || user.refreshToken !== refreshToken) {
-        throw apiError.unauthorized('Token is invalid or has been revoked');
+        throw apiError.unauthorized("Token is invalid or has been revoked");
     }
 
     const accessToken = await generateAccessToken({
@@ -209,7 +209,7 @@ export const profileService = async (userId: string) => {
         .where(eq(usersTable.id, userId));
 
     if (!user) {
-        throw apiError.notFound('User not found');
+        throw apiError.notFound("User not found");
     }
 
     return user;
@@ -225,7 +225,7 @@ export const forgotPasswordService = async (email: string) => {
             .where(eq(usersTable.email, email));
 
         if (!user) {
-            throw apiError.badRequest('Invalid email');
+            throw apiError.badRequest("Invalid email");
         }
 
         await tx
@@ -237,7 +237,7 @@ export const forgotPasswordService = async (email: string) => {
             .where(eq(usersTable.email, email));
     });
 
-    const resetURL = `${process.env.BASE_URL}/reset-password?token=${token}`;
+    const resetURL = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     // nodemailer logic
 
@@ -245,14 +245,14 @@ export const forgotPasswordService = async (email: string) => {
         const info = await transporter.sendMail({
             from: process.env.SENDER_EMAIL,
             to: email,
-            subject: 'Reset your password',
+            subject: "Reset your password",
             html: `<p>You can reset your password from the link : <a href="${resetURL}">Reset Pasword</a></p><br><p><b>NOTE : </b>Link is valid for 5 mins.</p>`,
         });
 
-        console.log('Message sent: %s', info.messageId);
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+        console.log("Message sent: %s", info.messageId);
+        console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
     } catch (err) {
-        console.error('Error while sending mail:', err);
+        console.error("Error while sending mail:", err);
     }
 
     return;
@@ -279,7 +279,7 @@ export const resetPasswordService = async ({
         .limit(1);
 
     if (!user) {
-        throw apiError.badRequest('Invalid or expired token');
+        throw apiError.badRequest("Invalid or expired token");
     }
 
     const newHashPassword = await generateHashPassword(newPassword);
@@ -298,7 +298,7 @@ export const resetPasswordService = async ({
 };
 
 export const verifyEmailService = async (token: string) => {
-    const hashToken = await generateHashedToken(token)
+    const hashToken = await generateHashedToken(token);
 
     const [updatedUser] = await db
         .update(usersTable)
@@ -310,7 +310,7 @@ export const verifyEmailService = async (token: string) => {
         .returning();
 
     if (!updatedUser) {
-        throw apiError.notFound('Invalid or expired verification token');
+        throw apiError.notFound("Invalid or expired verification token");
     }
-    return {user: updatedUser};
+    return { user: updatedUser };
 };

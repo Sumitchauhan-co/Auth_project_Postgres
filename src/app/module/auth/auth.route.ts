@@ -13,7 +13,7 @@ router.post('/logout', authenticate, authController.logout)
 
 router.post('/refresh', authController.refresh)
 
-router.get('/profile/:id', authenticate, authController.profile)
+router.get('/profile/:id', authController.profile)
 
 router.post('/forgot-password', forgotPasswordLimiter, authController.forgotPassword);
 

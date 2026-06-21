@@ -16,7 +16,6 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@types/nodemailer": "^8.0.0",
         "bcryptjs": "^3.0.3",
         "cookie-parser": "^1.4.7",
         "crypto": "^1.0.1",
@@ -25,6 +24,7 @@
         "express": "^5.2.1",
         "express-rate-limit": "^8.3.2",
         "jsonwebtoken": "^9.0.3",
+        "node-jose": "^2.2.0",
         "nodemailer": "^8.0.5",
         "pg": "^8.20.0",
         "zod": "^4.3.6"
@@ -34,6 +34,8 @@
         "@types/express": "^5.0.6",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^25.6.0",
+        "@types/node-jose": "^1.1.13",
+        "@types/nodemailer": "^8.0.0",
         "@types/pg": "^8.20.0",
         "drizzle-kit": "^0.31.10",
         "tsc-watch": "^7.2.0",
